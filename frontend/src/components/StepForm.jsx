@@ -4,6 +4,15 @@ const TONES = ["Professional", "Modern", "Creative", "Executive"];
 const CIVIL_STATUS = ["Single", "Married", "Widowed", "Separated"];
 const JOB_TYPES = ["Full-time", "Part-time", "Contractual", "Seasonal", "Remote"];
 const PROFICIENCY = ["Basic", "Conversational", "Fluent", "Native"];
+const LANGUAGE_SUGGESTIONS = ["Filipino", "English", "Cebuano"];
+const NATIONALITIES = [
+  "Afghan", "American", "Argentine", "Australian", "Bangladeshi", "Brazilian", "British", "Canadian",
+  "Chinese", "Colombian", "Danish", "Dutch", "Egyptian", "Filipino", "Finnish", "French", "German",
+  "Greek", "Indian", "Indonesian", "Irish", "Italian", "Japanese", "Kenyan", "Korean", "Malaysian",
+  "Mexican", "Moroccan", "Nepali", "New Zealander", "Nigerian", "Norwegian", "Pakistani", "Peruvian",
+  "Polish", "Portuguese", "Russian", "Saudi", "Singaporean", "South African", "Spanish", "Sri Lankan",
+  "Swedish", "Swiss", "Thai", "Turkish", "Ukrainian", "Vietnamese",
+];
 const emptyJob = () => ({ company: "", role: "", duration: "", responsibilities: "" });
 const emptyEdu = () => ({ school: "", degree: "", year: "" });
 const emptyCert = () => ({ name: "", issuer: "", year: "" });
@@ -163,7 +172,16 @@ export default function StepForm({ onSubmit, loading }) {
 
           <div>
             <label className={lbl}>Nationality</label>
-            <input className={inp} value={form.nationality} onChange={e => set("nationality", e.target.value)} />
+            <input
+              className={inp}
+              list="nationality-list"
+              value={form.nationality}
+              onChange={e => set("nationality", e.target.value)}
+              placeholder="Type or select nationality"
+            />
+            <datalist id="nationality-list">
+              {NATIONALITIES.map((n) => <option key={n} value={n} />)}
+            </datalist>
           </div>
 
           <div>
@@ -279,7 +297,13 @@ export default function StepForm({ onSubmit, loading }) {
             <div key={i} className="flex gap-2 items-end">
               <div className="flex-1">
                 <label className={lbl}>Language</label>
-                <input className={inp} value={lang.language} onChange={e => setList("languages", i, "language", e.target.value)} placeholder="e.g. Filipino, English, Cebuano" />
+                <input
+                  className={inp}
+                  list="language-list"
+                  value={lang.language}
+                  onChange={e => setList("languages", i, "language", e.target.value)}
+                  placeholder="Type or select language"
+                />
               </div>
               <div className="w-36">
                 <label className={lbl}>Proficiency</label>
@@ -292,6 +316,9 @@ export default function StepForm({ onSubmit, loading }) {
             </div>
           ))}
           <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("languages", emptyLang)}>+ Add language</button>
+          <datalist id="language-list">
+            {LANGUAGE_SUGGESTIONS.map((lang) => <option key={lang} value={lang} />)}
+          </datalist>
 
           {/* Skills */}
           <div>
@@ -303,10 +330,10 @@ export default function StepForm({ onSubmit, loading }) {
         </div>
       )}
 
-      {/* ── STEP 4 ── Target Role & Preferences */}
+      {/* ── STEP 4 ── Target Role & References */}
       {step === 4 && (
         <div className={sec}>
-          <h2 className="font-semibold text-gray-800 text-lg">Target Role & Preferences</h2>
+          <h2 className="font-semibold text-gray-800 text-lg">Target Role & References</h2>
           <div>
             <label className={lbl}>Target Job Title</label>
             <input className={inp} value={form.job_title} onChange={e => set("job_title", e.target.value)} placeholder="e.g. Senior Nurse, Accounting Staff" />
@@ -317,6 +344,46 @@ export default function StepForm({ onSubmit, loading }) {
               onChange={e => set("job_description", e.target.value)}
               placeholder="Paste the job description you're targeting..." />
           </div>
+          <p className="font-medium text-gray-700 pt-2">Character References</p>
+          {form.references.map((ref, i) => (
+            <div key={i} className={card}>
+              <p className="text-xs font-semibold text-indigo-500 uppercase">Reference {i + 1}</p>
+              {[["Full Name", "name"], ["Position / Title", "position"], ["Company / Organization", "company"], ["Contact Number", "contact"]].map(([label, field]) => (
+                <div key={field}>
+                  <label className={lbl}>{label}</label>
+                  <input className={inp} value={ref[field]} onChange={e => setList("references", i, field, e.target.value)} />
+                </div>
+              ))}
+              {form.references.length > 1 &&
+                <button className="text-xs text-red-400 hover:text-red-600" onClick={() => removeItem("references", i)}>Remove</button>}
+            </div>
+          ))}
+          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("references", emptyRef)}>+ Add reference</button>
+        </div>
+      )}
+
+      {/* ── STEP 5 ── Seminars & Preferences */}
+      {step === 5 && (
+        <div className={sec}>
+          <h2 className="font-semibold text-gray-800 text-lg">Seminars & Preferences</h2>
+
+          {/* Seminars */}
+          <p className="font-medium text-gray-700">Seminars & Trainings Attended</p>
+          {form.seminars.map((sem, i) => (
+            <div key={i} className={card}>
+              <p className="text-xs font-semibold text-indigo-500 uppercase">Seminar {i + 1}</p>
+              {[["Title / Topic", "title"], ["Organizer", "organizer"], ["Year", "year"]].map(([label, field]) => (
+                <div key={field}>
+                  <label className={lbl}>{label}</label>
+                  <input className={inp} value={sem[field]} onChange={e => setList("seminars", i, field, e.target.value)} />
+                </div>
+              ))}
+              {form.seminars.length > 1 &&
+                <button className="text-xs text-red-400 hover:text-red-600" onClick={() => removeItem("seminars", i)}>Remove</button>}
+            </div>
+          ))}
+          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("seminars", emptySeminar)}>+ Add seminar</button>
+
           <div>
             <label className={lbl}>Job Type</label>
             <div className="flex gap-2 flex-wrap">
@@ -344,47 +411,6 @@ export default function StepForm({ onSubmit, loading }) {
               ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ── STEP 5 ── References & Seminars */}
-      {step === 5 && (
-        <div className={sec}>
-          <h2 className="font-semibold text-gray-800 text-lg">References & Trainings</h2>
-
-          {/* Character References */}
-          <p className="font-medium text-gray-700">Character References</p>
-          {form.references.map((ref, i) => (
-            <div key={i} className={card}>
-              <p className="text-xs font-semibold text-indigo-500 uppercase">Reference {i + 1}</p>
-              {[["Full Name", "name"], ["Position / Title", "position"], ["Company / Organization", "company"], ["Contact Number", "contact"]].map(([label, field]) => (
-                <div key={field}>
-                  <label className={lbl}>{label}</label>
-                  <input className={inp} value={ref[field]} onChange={e => setList("references", i, field, e.target.value)} />
-                </div>
-              ))}
-              {form.references.length > 1 &&
-                <button className="text-xs text-red-400 hover:text-red-600" onClick={() => removeItem("references", i)}>Remove</button>}
-            </div>
-          ))}
-          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("references", emptyRef)}>+ Add reference</button>
-
-          {/* Seminars */}
-          <p className="font-medium text-gray-700 pt-2">Seminars & Trainings Attended</p>
-          {form.seminars.map((sem, i) => (
-            <div key={i} className={card}>
-              <p className="text-xs font-semibold text-indigo-500 uppercase">Seminar {i + 1}</p>
-              {[["Title / Topic", "title"], ["Organizer", "organizer"], ["Year", "year"]].map(([label, field]) => (
-                <div key={field}>
-                  <label className={lbl}>{label}</label>
-                  <input className={inp} value={sem[field]} onChange={e => setList("seminars", i, field, e.target.value)} />
-                </div>
-              ))}
-              {form.seminars.length > 1 &&
-                <button className="text-xs text-red-400 hover:text-red-600" onClick={() => removeItem("seminars", i)}>Remove</button>}
-            </div>
-          ))}
-          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("seminars", emptySeminar)}>+ Add seminar</button>
         </div>
       )}
 

@@ -1,4 +1,4 @@
-export default function ResumePreview({ data, markdown, loading }) {
+export default function ResumePreview({ data, markdown, loading, scale = 0.6 }) {
   if (!markdown && !loading) return null;
 
   if (loading && !markdown) {
@@ -163,7 +163,7 @@ export default function ResumePreview({ data, markdown, loading }) {
 
   const PAGE_WIDTH_PX = 816;
   const PAGE_HEIGHT_PX = 1056;
-  const SCALE = 0.6;
+  const SCALE = scale;
 
   const renderSkillLine = (line) => (
     <p className="text-xs text-slate-700"
