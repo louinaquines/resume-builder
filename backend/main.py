@@ -107,16 +107,15 @@ async def generate_resume(data: ResumeRequest):
     prompt = build_prompt(data)
 
     def stream():
-        with client.messages.stream(
-            model="claude-sonnet-4-20250514",
-            max_tokens=2000,
-            messages=[{"role": "user", "content": prompt}]
-        ) as stream:
-            for text in stream.text_stream:
-                yield text
+        try:
+            with client.messages.stream(
+                model="claude-sonnet-4-20250514",
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}]
+            ) as s:
+                for text in s.text_stream:
+                    yield text
+        except Exception as e:
+            yield f"ERROR: {str(e)}"
 
     return StreamingResponse(stream(), media_type="text/plain")
-
-@app.get("/health")
-def health():
-    return {"status": "ok"}
