@@ -103,7 +103,6 @@ export default function ResumePreview({ data, markdown, loading }) {
         <div className="bg-white shadow overflow-hidden" style={{
             fontFamily: "Georgia, serif",
             width: "816px",
-            minHeight: "1056px",
             transform: "scale(0.6)",
             transformOrigin: "top left",
             position: "absolute",
@@ -165,7 +164,6 @@ export default function ResumePreview({ data, markdown, loading }) {
                     </div>
                     </div>
                 )}
-                </div>
                 {certifications.length > 0 && (
                     <div>
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 border-b border-slate-300 pb-1 mb-2">Certifications</h3>
@@ -191,6 +189,7 @@ export default function ResumePreview({ data, markdown, loading }) {
                         dangerouslySetInnerHTML={{ __html: personalInfo.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>") }} />
                     </div>
                 )}
+                </div>
 
                 {/* Main */}
                 <div className="flex-1 p-6 space-y-5">
