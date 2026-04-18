@@ -1,5 +1,5 @@
 export default function ResumePreview({ data, markdown, loading }) {
-  if (!markdown && !loading) return null;
+  if (!markdown && !loading && !data) return null;
 
   if (loading && !markdown) {
     return (
@@ -9,7 +9,7 @@ export default function ResumePreview({ data, markdown, loading }) {
     );
   }
 
-  const lines = markdown.split("\n").map(l => l.trim()).filter(l => l !== "");
+  const lines = markdown ? markdown.split("\n").map(l => l.trim()).filter(l => l !== "") : [];
 
   let name = "", contact = "", summary = [];
   let experience = [], education = [], skills = [];
@@ -90,8 +90,80 @@ export default function ResumePreview({ data, markdown, loading }) {
   if (currentJob) experience.push(currentJob);
   if (currentEdu) education.push(currentEdu);
 
-  const summaryText = summary.join(" ");
-  const contactParts = contact.split("|").map(p => p.trim()).filter(Boolean);
+  const fallbackSummary = [data?.headline, data?.job_description].filter(Boolean).join(" ");
+  const summaryText = summary.join(" ") || fallbackSummary;
+
+  const fallbackContactParts = [
+    data?.email,
+    data?.phone,
+    data?.linkedin,
+    data?.social_link,
+    data?.location,
+  ].filter(Boolean);
+  const contactParts = (contact ? contact.split("|").map(p => p.trim()).filter(Boolean) : fallbackContactParts);
+
+  if (skills.length === 0 && data?.skills) {
+    skills = data.skills.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+
+  if (education.length === 0 && Array.isArray(data?.education)) {
+    education = data.education
+      .filter((e) => e?.school || e?.degree || e?.year)
+      .map((e) => ({
+        title: [e.degree, e.school].filter(Boolean).join(" - ") + (e.year ? ` (${e.year})` : ""),
+      }));
+  }
+
+  if (experience.length === 0 && Array.isArray(data?.work_experience)) {
+    experience = data.work_experience
+      .filter((j) => j?.company || j?.role || j?.duration || j?.responsibilities)
+      .map((j) => ({
+        title: [j.role, j.company].filter(Boolean).join(" - ") + (j.duration ? ` (${j.duration})` : ""),
+        bullets: (j.responsibilities || "")
+          .split("\n")
+          .map((b) => b.trim())
+          .filter(Boolean),
+      }));
+  }
+
+  if (certifications.length === 0 && Array.isArray(data?.certifications)) {
+    certifications = data.certifications
+      .filter((c) => c?.name || c?.issuer || c?.year)
+      .map((c) => [c.name, c.issuer].filter(Boolean).join(" - ") + (c.year ? ` (${c.year})` : ""));
+  }
+
+  if (languages.length === 0 && Array.isArray(data?.languages)) {
+    languages = data.languages
+      .filter((l) => l?.language)
+      .map((l) => `${l.language}${l.proficiency ? ` (${l.proficiency})` : ""}`);
+  }
+
+  if (seminarsAttended.length === 0 && Array.isArray(data?.seminars)) {
+    seminarsAttended = data.seminars
+      .filter((s) => s?.title || s?.organizer || s?.year)
+      .map((s) => [s.title, s.organizer].filter(Boolean).join(" - ") + (s.year ? ` (${s.year})` : ""));
+  }
+
+  if (characterRefs.length === 0 && Array.isArray(data?.references)) {
+    characterRefs = data.references
+      .filter((r) => r?.name || r?.position || r?.company || r?.contact)
+      .map((r) => [r.name, r.position, r.company, r.contact].filter(Boolean).join(" - "));
+  }
+
+  if (!personalInfo) {
+    const personalParts = [
+      data?.date_of_birth ? `DOB: ${data.date_of_birth}` : "",
+      data?.civil_status ? `Civil Status: ${data.civil_status}` : "",
+      data?.nationality ? `Nationality: ${data.nationality}` : "",
+      data?.availability ? `Availability: ${data.availability}` : "",
+      data?.job_type ? `Preferred Job Type: ${data.job_type}` : "",
+    ].filter(Boolean);
+    personalInfo = personalParts.join(" | ");
+  }
+
+  const PAGE_WIDTH_PX = 816;
+  const PAGE_HEIGHT_PX = 1056;
+  const SCALE = 0.6;
 
   const renderSkillLine = (line) => (
     <p className="text-xs text-slate-700"
@@ -99,11 +171,12 @@ export default function ResumePreview({ data, markdown, loading }) {
   );
 
   return (
-    <div style={{ width: "490px", height: "634px", overflow: "hidden", position: "relative", flexShrink: 0 }}>
+    <div style={{ width: `${PAGE_WIDTH_PX * SCALE}px`, height: `${PAGE_HEIGHT_PX * SCALE}px`, overflow: "hidden", position: "relative", flexShrink: 0 }}>
         <div className="bg-white shadow overflow-hidden" style={{
             fontFamily: "Georgia, serif",
-            width: "816px",
-            transform: "scale(0.6)",
+            width: `${PAGE_WIDTH_PX}px`,
+            height: `${PAGE_HEIGHT_PX}px`,
+            transform: `scale(${SCALE})`,
             transformOrigin: "top left",
             position: "absolute",
             top: 0,
@@ -124,7 +197,7 @@ export default function ResumePreview({ data, markdown, loading }) {
                 </div>
                 <div>
                 <h1 className="text-2xl font-bold uppercase tracking-wide">{name || data?.full_name}</h1>
-                <p className="text-slate-300 text-sm mt-1">{data?.job_title}</p>
+                <p className="text-slate-300 text-sm mt-1">{data?.job_title || data?.headline}</p>
                 </div>
             </div>
 

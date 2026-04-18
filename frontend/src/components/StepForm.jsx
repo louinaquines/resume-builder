@@ -11,7 +11,7 @@ const emptyLang = () => ({ language: "", proficiency: "Conversational" });
 const emptyRef = () => ({ name: "", position: "", company: "", contact: "" });
 const emptySeminar = () => ({ title: "", organizer: "", year: "" });
 
-export default function StepForm({ onSubmit, loading }) {
+export default function StepForm({ onSubmit, onChange, loading }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     // Step 1
@@ -99,6 +99,12 @@ export default function StepForm({ onSubmit, loading }) {
     [form.street, barangayName, municipalityName, provinceName, form.postal].filter(Boolean).join(", ");
 
   const handleSubmit = () => onSubmit({ ...form, location: buildLocation() });
+
+  useEffect(() => {
+    if (typeof onChange === "function") {
+      onChange({ ...form, location: buildLocation() });
+    }
+  }, [form, provinceName, municipalityName, barangayName]);
 
   const TOTAL_STEPS = 5;
 
