@@ -1,5 +1,5 @@
 export default function ResumePreview({ data, markdown, loading }) {
-  if (!markdown && !loading && !data) return null;
+  if (!markdown && !loading) return null;
 
   if (loading && !markdown) {
     return (

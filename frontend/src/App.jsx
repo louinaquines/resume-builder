@@ -37,7 +37,7 @@ export default function App() {
           <p className="text-gray-500 mt-1 text-sm">Fill in your details — AI writes the rest.</p>
         </div>
         <div className="flex flex-col lg:flex-row gap-8 items-start justify-center">
-          <StepForm onSubmit={handleSubmit} onChange={setFormData} loading={loading} />
+          <StepForm onSubmit={handleSubmit} loading={loading} />
           <div className="flex flex-col gap-4 w-full max-w-2xl">
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {preview}
