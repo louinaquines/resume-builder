@@ -16,7 +16,10 @@ export default function App() {
     try {
       await generateResume(
         formData,
-        (chunk) => setMarkdown(prev => prev + chunk),
+        (chunk) => {
+          console.log("CHUNK:", chunk); 
+          setMarkdown(prev => prev + chunk);
+        },
         () => setLoading(false)
       );
     } catch (e) {
