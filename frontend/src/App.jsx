@@ -27,8 +27,11 @@ export default function App() {
     }
   };
 
-  const preview = <ResumePreview data={formData} markdown={markdown} loading={loading} />;
-
+  const preview = (
+    <div id="resume-live">
+      <ResumePreview data={formData} markdown={markdown} loading={loading} />
+    </div>
+  );
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-slate-100 py-10 px-4">
       <div className="max-w-6xl mx-auto">
@@ -41,7 +44,7 @@ export default function App() {
           <div className="flex flex-col gap-4 w-full max-w-2xl">
             {error && <p className="text-red-500 text-sm">{error}</p>}
             {preview}
-            <PDFExport markdown={markdown}>{preview}</PDFExport>
+            <PDFExport markdown={markdown} data={formData} />
           </div>
         </div>
       </div>
