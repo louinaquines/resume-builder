@@ -1,51 +1,50 @@
-import { cloneElement, useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { useRef } from "react";
 
 export default function PDFExport({ children, markdown }) {
   const printRef = useRef();
-  const [downloading, setDownloading] = useState(false);
 
-  const handleDownload = async () => {
-    if (!printRef.current) return;
-    try {
-      setDownloading(true);
-      const canvas = await html2canvas(printRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
-      const imageData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "pt",
-        format: "letter",
-      });
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    const content = printRef.current?.innerHTML;
+    if (!content) return;
 
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      pdf.addImage(imageData, "PNG", 0, 0, pageWidth, pageHeight);
-      pdf.save("resume.pdf");
-    } finally {
-      setDownloading(false);
-    }
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Resume</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: Georgia, serif; }
+            @page { size: letter; margin: 0; }
+            @media print {
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>
+          ${content}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
   };
 
   if (!markdown) return null;
 
   return (
     <div className="w-full max-w-2xl">
-      <button
-        onClick={handleDownload}
-        disabled={downloading}
-        className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-xl text-sm transition disabled:opacity-60 disabled:cursor-not-allowed"
-      >
-        {downloading ? "Preparing PDF..." : "⬇ Download as PDF"}
+      <button onClick={handlePrint}
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-xl text-sm transition">
+        ⬇ Download as PDF
       </button>
-      <div className="fixed -left-[99999px] top-0 pointer-events-none">
-        <div ref={printRef}>
-          {cloneElement(children, { scale: 1 })}
-        </div>
+      <div className="hidden" ref={printRef}>
+        {children}
       </div>
     </div>
   );
