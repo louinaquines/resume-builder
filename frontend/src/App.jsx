@@ -10,6 +10,7 @@ export default function App() {
   const [error, setError] = useState("");
 
   const handleSubmit = async (formData) => {
+    console.log("FORM SUBMITTED:", formData);
     setMarkdown("");
     setError("");
     setLoading(true);

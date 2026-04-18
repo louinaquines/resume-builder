@@ -172,7 +172,10 @@ export default function StepForm({ onSubmit, loading }) {
           : <button
               className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50"
               disabled={loading}
-              onClick={() => onSubmit(form)}>
+              onClick={() => {
+                console.log("BUTTON CLICKED");
+                onSubmit(form)
+              }}>
               {loading ? "Generating..." : "Generate Resume ✨"}
             </button>
         }
