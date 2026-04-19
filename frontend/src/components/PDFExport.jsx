@@ -49,6 +49,7 @@ ${buildPrintHTML(data, el)}
 
   return (
     <div style={{ width: "490px" }}>
+      <p className="text-xs text-gray-400 text-center mb-1">In the print dialog, set destination to <strong>"Save as PDF"</strong></p>
       <button onClick={handlePrint}
         className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-xl text-sm transition">
         ⬇ Download as PDF
