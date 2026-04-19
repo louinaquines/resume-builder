@@ -25,7 +25,7 @@ export default function PDFExport({ markdown, data }) {
       <button
         onClick={handleDownload}
         disabled={downloading}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-medium py-2.5 rounded-xl text-sm transition">
+        className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-3.5 rounded-xl text-base transition-all duration-300 transform hover:scale-[1.02] shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] disabled:opacity-50 disabled:hover:scale-100 disabled:hover:shadow-none">
         {downloading ? "Preparing PDF..." : "⬇ Download as PDF"}
       </button>
     </div>

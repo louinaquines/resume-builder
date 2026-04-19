@@ -95,10 +95,10 @@ export default function StepForm({ onSubmit, loading }) {
   const addItem = (field, empty) => set(field, [...form[field], empty()]);
   const removeItem = (field, i) => set(field, form[field].filter((_, j) => j !== i));
 
-  const inp = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white";
-  const lbl = "block text-sm font-medium text-gray-700 mb-1";
-  const sec = "space-y-4";
-  const card = "border border-gray-200 rounded-xl p-4 space-y-3";
+  const inp = "w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 bg-[#0a0a0f]/50 text-white placeholder-slate-500 transition-all duration-300";
+  const lbl = "block text-sm font-medium text-slate-300 mb-1.5";
+  const sec = "space-y-6";
+  const card = "border border-white/10 bg-white/5 rounded-xl p-5 space-y-4";
 
   const provinceName = provinces.find(p => p.code === form.province)?.name || "";
   const municipalityName = municipalities.find(m => m.code === form.municipality)?.name || "";
@@ -112,14 +112,14 @@ export default function StepForm({ onSubmit, loading }) {
   const TOTAL_STEPS = 5;
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6 w-full max-w-xl">
+    <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.4)] rounded-2xl p-8 w-full max-w-xl">
       {/* Progress */}
       <div className="flex items-center gap-2 mb-6">
         {Array.from({ length: TOTAL_STEPS }, (_, i) => i + 1).map(n => (
           <div key={n} className="flex items-center gap-2 flex-1">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold
-              ${step >= n ? "bg-indigo-600 text-white" : "bg-gray-200 text-gray-500"}`}>{n}</div>
-            {n < TOTAL_STEPS && <div className={`flex-1 h-1 rounded ${step > n ? "bg-indigo-600" : "bg-gray-200"}`} />}
+              ${step >= n ? "bg-indigo-600 text-white" : "bg-gray-200 text-slate-400"}`}>{n}</div>
+            {n < TOTAL_STEPS && <div className={`flex-1 h-1 rounded transition-all duration-300 ${step > n ? "bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.6)]" : "bg-white/10"}`} />}
           </div>
         ))}
       </div>
@@ -127,11 +127,11 @@ export default function StepForm({ onSubmit, loading }) {
       {/* ── STEP 1 ── Personal Info */}
       {step === 1 && (
         <div className={sec}>
-          <h2 className="font-semibold text-gray-800 text-lg">Personal Info</h2>
+          <h2 className="font-semibold text-white text-xl tracking-tight">Personal Info</h2>
 
           {/* Photo */}
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-indigo-400 transition"
+            <div className="w-20 h-20 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center overflow-hidden cursor-pointer hover:border-indigo-500 transition"
               onClick={() => fileRef.current.click()}>
               {photoPreview
                 ? <img src={photoPreview} alt="preview" className="w-full h-full object-cover" />
@@ -142,16 +142,16 @@ export default function StepForm({ onSubmit, loading }) {
                   </svg>}
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-700">Profile Photo</p>
-              <p className="text-xs text-gray-400 mb-1">Optional</p>
-              <button className="text-xs text-indigo-600 hover:underline" onClick={() => fileRef.current.click()}>Upload photo</button>
+              <p className="text-sm font-medium text-slate-300">Profile Photo</p>
+              <p className="text-xs text-slate-400 mb-1">Optional</p>
+              <button className="text-xs text-indigo-400 font-medium hover:text-indigo-300 hover:underline" onClick={() => fileRef.current.click()}>Upload photo</button>
               <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
             </div>
           </div>
 
           {[["Full Name", "full_name"], ["Professional Headline", "headline"], ["Email", "email"], ["Phone", "phone"]].map(([label, field]) => (
             <div key={field}>
-              <label className={lbl}>{label}{field === "headline" && <span className="text-gray-400 text-xs ml-1">e.g. Registered Nurse, Accountant</span>}</label>
+              <label className={lbl}>{label}{field === "headline" && <span className="text-slate-400 text-xs ml-1">e.g. Registered Nurse, Accountant</span>}</label>
               <input className={inp} value={form[field]} onChange={e => set(field, e.target.value)} />
             </div>
           ))}
@@ -190,7 +190,7 @@ export default function StepForm({ onSubmit, loading }) {
           </div>
 
           <div>
-            <label className={lbl}>Other Social / Portfolio Link <span className="text-gray-400 text-xs ml-1">optional</span></label>
+            <label className={lbl}>Other Social / Portfolio Link <span className="text-slate-400 text-xs ml-1">optional</span></label>
             <input className={inp} value={form.social_link} onChange={e => set("social_link", e.target.value)} placeholder="facebook.com/yourname or yourportfolio.com" />
           </div>
 
@@ -232,10 +232,10 @@ export default function StepForm({ onSubmit, loading }) {
       {/* ── STEP 2 ── Work Experience */}
       {step === 2 && (
         <div className={sec}>
-          <h2 className="font-semibold text-gray-800 text-lg">Work Experience</h2>
+          <h2 className="font-semibold text-white text-xl tracking-tight">Work Experience</h2>
           {form.work_experience.map((job, i) => (
             <div key={i} className={card}>
-              <p className="text-xs font-semibold text-indigo-500 uppercase">Job {i + 1}</p>
+              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Job {i + 1}</p>
               {[["Company", "company"], ["Role / Title", "role"], ["Duration", "duration"]].map(([label, field]) => (
                 <div key={field}>
                   <label className={lbl}>{label}</label>
@@ -248,22 +248,22 @@ export default function StepForm({ onSubmit, loading }) {
                   onChange={e => setList("work_experience", i, "responsibilities", e.target.value)} />
               </div>
               {form.work_experience.length > 1 &&
-                <button className="text-xs text-red-400 hover:text-red-600" onClick={() => removeItem("work_experience", i)}>Remove</button>}
+                <button className="text-xs text-red-400 hover:text-red-300 bg-red-900/20 px-3 py-1 rounded-lg transition-colors" onClick={() => removeItem("work_experience", i)}>Remove</button>}
             </div>
           ))}
-          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("work_experience", emptyJob)}>+ Add another job</button>
+          <button className="text-sm text-indigo-400 font-medium hover:text-indigo-300 hover:underline" onClick={() => addItem("work_experience", emptyJob)}>+ Add another job</button>
         </div>
       )}
 
       {/* ── STEP 3 ── Education, Certifications, Languages, Skills */}
       {step === 3 && (
         <div className={sec}>
-          <h2 className="font-semibold text-gray-800 text-lg">Education & Skills</h2>
+          <h2 className="font-semibold text-white text-xl tracking-tight">Education & Skills</h2>
 
           {/* Education */}
           {form.education.map((edu, i) => (
             <div key={i} className={card}>
-              <p className="text-xs font-semibold text-indigo-500 uppercase">Education {i + 1}</p>
+              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Education {i + 1}</p>
               {[["School / University", "school"], ["Degree / Course", "degree"], ["Year Graduated", "year"]].map(([label, field]) => (
                 <div key={field}>
                   <label className={lbl}>{label}</label>
@@ -272,13 +272,13 @@ export default function StepForm({ onSubmit, loading }) {
               ))}
             </div>
           ))}
-          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("education", emptyEdu)}>+ Add education</button>
+          <button className="text-sm text-indigo-400 font-medium hover:text-indigo-300 hover:underline" onClick={() => addItem("education", emptyEdu)}>+ Add education</button>
 
           {/* Certifications */}
-          <p className="font-medium text-gray-700 pt-2">Certifications & Licenses <span className="text-gray-400 text-xs">(PRC, TESDA, Driver's License, etc.)</span></p>
+          <p className="font-medium text-slate-300 pt-2">Certifications & Licenses <span className="text-slate-400 text-xs">(PRC, TESDA, Driver's License, etc.)</span></p>
           {form.certifications.map((cert, i) => (
             <div key={i} className={card}>
-              <p className="text-xs font-semibold text-indigo-500 uppercase">Cert {i + 1}</p>
+              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Cert {i + 1}</p>
               {[["Certificate / License Name", "name"], ["Issuing Organization", "issuer"], ["Year", "year"]].map(([label, field]) => (
                 <div key={field}>
                   <label className={lbl}>{label}</label>
@@ -286,13 +286,13 @@ export default function StepForm({ onSubmit, loading }) {
                 </div>
               ))}
               {form.certifications.length > 1 &&
-                <button className="text-xs text-red-400 hover:text-red-600" onClick={() => removeItem("certifications", i)}>Remove</button>}
+                <button className="text-xs text-red-400 hover:text-red-300 bg-red-900/20 px-3 py-1 rounded-lg transition-colors" onClick={() => removeItem("certifications", i)}>Remove</button>}
             </div>
           ))}
-          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("certifications", emptyCert)}>+ Add certification</button>
+          <button className="text-sm text-indigo-400 font-medium hover:text-indigo-300 hover:underline" onClick={() => addItem("certifications", emptyCert)}>+ Add certification</button>
 
           {/* Languages */}
-          <p className="font-medium text-gray-700 pt-2">Languages Spoken</p>
+          <p className="font-medium text-slate-300 pt-2">Languages Spoken</p>
           {form.languages.map((lang, i) => (
             <div key={i} className="flex gap-2 items-end">
               <div className="flex-1">
@@ -315,14 +315,14 @@ export default function StepForm({ onSubmit, loading }) {
                 <button className="text-xs text-red-400 pb-2 hover:text-red-600" onClick={() => removeItem("languages", i)}>✕</button>}
             </div>
           ))}
-          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("languages", emptyLang)}>+ Add language</button>
+          <button className="text-sm text-indigo-400 font-medium hover:text-indigo-300 hover:underline" onClick={() => addItem("languages", emptyLang)}>+ Add language</button>
           <datalist id="language-list">
             {LANGUAGE_SUGGESTIONS.map((lang) => <option key={lang} value={lang} />)}
           </datalist>
 
           {/* Skills */}
           <div>
-            <label className={lbl}>Skills <span className="text-gray-400 text-xs">(comma separated)</span></label>
+            <label className={lbl}>Skills <span className="text-slate-400 text-xs">(comma separated)</span></label>
             <textarea className={inp + " h-20 resize-none"} value={form.skills}
               onChange={e => set("skills", e.target.value)}
               placeholder="e.g. Patient care, Microsoft Excel, Customer service, Cooking" />
@@ -333,21 +333,21 @@ export default function StepForm({ onSubmit, loading }) {
       {/* ── STEP 4 ── Target Role & References */}
       {step === 4 && (
         <div className={sec}>
-          <h2 className="font-semibold text-gray-800 text-lg">Target Role & References</h2>
+          <h2 className="font-semibold text-white text-xl tracking-tight">Target Role & References</h2>
           <div>
             <label className={lbl}>Target Job Title</label>
             <input className={inp} value={form.job_title} onChange={e => set("job_title", e.target.value)} placeholder="e.g. Senior Nurse, Accounting Staff" />
           </div>
           <div>
-            <label className={lbl}>Job Description <span className="text-gray-400 text-xs">(paste or summarize)</span></label>
+            <label className={lbl}>Job Description <span className="text-slate-400 text-xs">(paste or summarize)</span></label>
             <textarea className={inp + " h-28 resize-none"} value={form.job_description}
               onChange={e => set("job_description", e.target.value)}
               placeholder="Paste the job description you're targeting..." />
           </div>
-          <p className="font-medium text-gray-700 pt-2">Character References</p>
+          <p className="font-medium text-slate-300 pt-2">Character References</p>
           {form.references.map((ref, i) => (
             <div key={i} className={card}>
-              <p className="text-xs font-semibold text-indigo-500 uppercase">Reference {i + 1}</p>
+              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Reference {i + 1}</p>
               {[["Full Name", "name"], ["Position / Title", "position"], ["Company / Organization", "company"], ["Contact Number", "contact"]].map(([label, field]) => (
                 <div key={field}>
                   <label className={lbl}>{label}</label>
@@ -355,23 +355,23 @@ export default function StepForm({ onSubmit, loading }) {
                 </div>
               ))}
               {form.references.length > 1 &&
-                <button className="text-xs text-red-400 hover:text-red-600" onClick={() => removeItem("references", i)}>Remove</button>}
+                <button className="text-xs text-red-400 hover:text-red-300 bg-red-900/20 px-3 py-1 rounded-lg transition-colors" onClick={() => removeItem("references", i)}>Remove</button>}
             </div>
           ))}
-          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("references", emptyRef)}>+ Add reference</button>
+          <button className="text-sm text-indigo-400 font-medium hover:text-indigo-300 hover:underline" onClick={() => addItem("references", emptyRef)}>+ Add reference</button>
         </div>
       )}
 
       {/* ── STEP 5 ── Seminars & Preferences */}
       {step === 5 && (
         <div className={sec}>
-          <h2 className="font-semibold text-gray-800 text-lg">Seminars & Preferences</h2>
+          <h2 className="font-semibold text-white text-xl tracking-tight">Seminars & Preferences</h2>
 
           {/* Seminars */}
-          <p className="font-medium text-gray-700">Seminars & Trainings Attended</p>
+          <p className="font-medium text-slate-300">Seminars & Trainings Attended</p>
           {form.seminars.map((sem, i) => (
             <div key={i} className={card}>
-              <p className="text-xs font-semibold text-indigo-500 uppercase">Seminar {i + 1}</p>
+              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Seminar {i + 1}</p>
               {[["Title / Topic", "title"], ["Organizer", "organizer"], ["Year", "year"]].map(([label, field]) => (
                 <div key={field}>
                   <label className={lbl}>{label}</label>
@@ -379,10 +379,10 @@ export default function StepForm({ onSubmit, loading }) {
                 </div>
               ))}
               {form.seminars.length > 1 &&
-                <button className="text-xs text-red-400 hover:text-red-600" onClick={() => removeItem("seminars", i)}>Remove</button>}
+                <button className="text-xs text-red-400 hover:text-red-300 bg-red-900/20 px-3 py-1 rounded-lg transition-colors" onClick={() => removeItem("seminars", i)}>Remove</button>}
             </div>
           ))}
-          <button className="text-sm text-indigo-600 hover:underline" onClick={() => addItem("seminars", emptySeminar)}>+ Add seminar</button>
+          <button className="text-sm text-indigo-400 font-medium hover:text-indigo-300 hover:underline" onClick={() => addItem("seminars", emptySeminar)}>+ Add seminar</button>
 
           <div>
             <label className={lbl}>Job Type</label>
@@ -390,7 +390,7 @@ export default function StepForm({ onSubmit, loading }) {
               {JOB_TYPES.map(t => (
                 <button key={t}
                   className={`px-3 py-1.5 rounded-full text-sm border transition
-                    ${form.job_type === t ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600 hover:border-indigo-400"}`}
+                    ${form.job_type === t ? "bg-indigo-600 text-white border-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.4)]" : "border-white/10 text-slate-300 hover:border-indigo-500"}`}
                   onClick={() => set("job_type", t)}>{t}</button>
               ))}
             </div>
@@ -406,7 +406,7 @@ export default function StepForm({ onSubmit, loading }) {
               {TONES.map(t => (
                 <button key={t}
                   className={`px-3 py-1.5 rounded-full text-sm border transition
-                    ${form.tone === t ? "bg-indigo-600 text-white border-indigo-600" : "border-gray-300 text-gray-600 hover:border-indigo-400"}`}
+                    ${form.tone === t ? "bg-indigo-600 text-white border-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.4)]" : "border-white/10 text-slate-300 hover:border-indigo-500"}`}
                   onClick={() => set("tone", t)}>{t}</button>
               ))}
             </div>
@@ -417,12 +417,12 @@ export default function StepForm({ onSubmit, loading }) {
       {/* Navigation */}
       <div className="flex justify-between mt-6">
         {step > 1
-          ? <button className="text-sm text-gray-500 hover:text-gray-700" onClick={() => setStep(s => s - 1)}>← Back</button>
+          ? <button className="text-sm text-slate-400 hover:text-slate-300" onClick={() => setStep(s => s - 1)}>← Back</button>
           : <div />}
         {step < TOTAL_STEPS
-          ? <button className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-indigo-700"
+          ? <button className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-medium shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)] hover:bg-indigo-500 transition-all duration-300"
               onClick={() => setStep(s => s + 1)}>Next →</button>
-          : <button className="bg-indigo-600 text-white px-5 py-2 rounded-lg text-sm hover:bg-indigo-700 disabled:opacity-50"
+          : <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-2.5 rounded-xl font-bold shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 disabled:opacity-50 disabled:hover:shadow-none"
               disabled={loading} onClick={handleSubmit}>
               {loading ? "Generating..." : "Generate Resume ✨"}
             </button>}
