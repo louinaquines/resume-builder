@@ -20,3 +20,17 @@ export async function generateResume(formData, onChunk, onDone) {
 
   onDone();
 }
+
+export async function downloadResumePDF(formData) {
+  const response = await fetch(`${BASE_URL}/generate-pdf`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
+
+  if (!response.ok) throw new Error("Failed to generate PDF");
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank");
+}

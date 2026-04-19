@@ -11,6 +11,7 @@ export default function App() {
   const [formData, setFormData] = useState(null);
 
   const handleSubmit = async (data) => {
+    console.log("SUBMITTING:", JSON.stringify(data));
     setMarkdown("");
     setError("");
     setLoading(true);
