@@ -11,6 +11,7 @@ export default function App() {
   const [formData, setFormData] = useState(null);
 
   const handleResumeReady = async (data) => {
+    console.log("FORM DATA:", JSON.stringify(data));
     setMarkdown("");
     setError("");
     setLoading(true);

@@ -47,6 +47,7 @@ class ResumeRequest(BaseModel):
     date_of_birth: str = ""
     civil_status: str = ""
     nationality: str = ""
+    gender: str = ""
     job_title: str = ""
     job_description: str = ""
     job_type: str = "Full-time"
@@ -288,219 +289,206 @@ async def generate_pdf(data: ResumeRequest):
         result = response.json()
         markdown_text = result["choices"][0]["message"]["content"]
 
-    summary_text = ""
-    in_summary = False
-    for line in markdown_text.split("\n"):
-        line = line.strip()
-        if line.lower().startswith("## professional summary"):
-            in_summary = True
-            continue
-        if in_summary:
-            if line.startswith("##"):
+    # Parse markdown
+    def parse_section(md, section_name):
+        lines = md.split("\n")
+        result = []
+        in_section = False
+        for line in lines:
+            if line.strip().startswith("## ") and section_name.lower() in line.lower():
+                in_section = True
+                continue
+            if in_section and line.strip().startswith("## "):
                 break
-            if line:
-                summary_text += line + " "
+            if in_section and line.strip():
+                result.append(line.strip())
+        return result
 
-    buffer = BytesIO()
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=letter,
-        leftMargin=0,
-        rightMargin=0,
-        topMargin=0,
-        bottomMargin=0,
-    )
+    summary_lines = parse_section(markdown_text, "summary") or parse_section(markdown_text, "objective")
+    summary_text = " ".join(l for l in summary_lines if not l.startswith("#"))
 
-    # Map the color accent choice to an actual hex color
-    accent_map = {
-        "Deep Purple": "#4c1d95",
-        "Electric Blue": "#2563eb",
-        "Classic Black": "#1e293b",
-        "Soft Green": "#059669"
-    }
-    hex_color = accent_map.get(data.color_accent, "#1e293b")
+    # Color
+    accent_map = {"Deep Purple": "#4c1d95", "Electric Blue": "#2563eb", "Classic Black": "#1e293b", "Soft Green": "#059669"}
+    tone_color_map = {"Professional": "#1e293b", "Modern": "#2563eb", "Creative": "#7c3aed", "Executive": "#1e3a5f"}
+    if data.color_accent and data.color_accent != "Classic Black":
+        hex_color = accent_map.get(data.color_accent, "#1e293b")
+    else:
+        hex_color = tone_color_map.get(data.tone, "#1e293b")
 
     dark = colors.HexColor(hex_color)
-    slate100 = colors.HexColor("#f1f5f9")
-    slate500 = colors.HexColor("#64748b")
-    slate600 = colors.HexColor("#475569")
+    gray_bg = colors.HexColor("#f3f4f6")
+    text_dark = colors.HexColor("#1e293b")
+    text_mid = colors.HexColor("#4b5563")
+    text_light = colors.HexColor("#9ca3af")
+    line_color = colors.HexColor("#e5e7eb")
     white = colors.white
+
+    buffer = BytesIO()
+    PAGE_W, PAGE_H = letter
+    SIDEBAR_W = 2.4 * inch
+    MAIN_W = PAGE_W - SIDEBAR_W
+    HEADER_H = 1.2 * inch
+
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+        leftMargin=0, rightMargin=0, topMargin=0, bottomMargin=0)
 
     styles = getSampleStyleSheet()
 
-    def style(name, **kwargs):
-        return ParagraphStyle(name, **kwargs)
+    def S(name, **kw): return ParagraphStyle(name, **kw)
 
-    name_style = style("Name", fontName="Helvetica-Bold", fontSize=16,
-                       textColor=white, spaceAfter=2, leading=20)
-    role_style = style("Role", fontName="Helvetica", fontSize=10,
-                       textColor=colors.HexColor("#cbd5e1"), spaceAfter=0)
-    sidebar_title_style = style("SidebarTitle", fontName="Helvetica-Bold", fontSize=7,
-                                textColor=slate500, spaceAfter=4, leading=10)
-    sidebar_text_style = style("SidebarText", fontName="Helvetica", fontSize=8,
-                               textColor=slate600, spaceAfter=2, leading=11, wordWrap='CJK')
-    main_title_style = style("MainTitle", fontName="Helvetica-Bold", fontSize=9,
-                             textColor=dark, spaceAfter=6, leading=12)
-    body_style = style("Body", fontName="Helvetica", fontSize=8,
-                       textColor=slate600, spaceAfter=2, leading=12)
-    job_title_style = style("JobTitle", fontName="Helvetica-Bold", fontSize=9,
-                            textColor=dark, spaceAfter=3, leading=12)
-    bullet_style = style("Bullet", fontName="Helvetica", fontSize=8,
-                         textColor=slate600, spaceAfter=2, leading=11,
-                         leftIndent=10, firstLineIndent=-10)
+    name_s = S("N", fontName="Helvetica-Bold", fontSize=18, textColor=white, leading=22, spaceAfter=2)
+    role_s = S("R", fontName="Helvetica", fontSize=11, textColor=colors.HexColor("#cbd5e1"), leading=14)
+    sidebar_title_s = S("ST", fontName="Helvetica-Bold", fontSize=8, textColor=text_dark,
+                         leading=10, spaceAfter=2, spaceBefore=12)
+    sidebar_text_s = S("Stx", fontName="Helvetica", fontSize=8, textColor=text_mid,
+                        leading=11, spaceAfter=2, wordWrap='CJK')
+    main_title_s = S("MT", fontName="Helvetica-Bold", fontSize=10, textColor=text_dark,
+                      leading=13, spaceAfter=4, spaceBefore=10)
+    main_body_s = S("MB", fontName="Helvetica", fontSize=8, textColor=text_mid,
+                     leading=12, spaceAfter=2)
+    job_title_s = S("JT", fontName="Helvetica-Bold", fontSize=9, textColor=text_dark,
+                     leading=12, spaceAfter=2)
+    empty_s = S("E", fontName="Helvetica-Oblique", fontSize=8, textColor=text_light, leading=11)
 
-    PAGE_W, PAGE_H = letter
-    SIDEBAR_W = 2.2 * inch
-    MAIN_W = PAGE_W - SIDEBAR_W
-    HEADER_H = 1.1 * inch
-
-    photo_cell = Paragraph("", styles["Normal"])
-    if data.photo and data.photo.startswith("data:image"):
-        try:
-            from reportlab.platypus import Image as RLImage
-            header_str = data.photo.split(",", 1)[1]
-            img_bytes = base64.b64decode(header_str)
-            img_buffer = BytesIO(img_bytes)
-            photo_cell = RLImage(img_buffer, width=0.7*inch, height=0.7*inch)
-        except Exception:
-            pass
-
-    name_cell = [
-        Paragraph(data.full_name.upper(), name_style),
-        Paragraph(data.job_title or data.headline or "", role_style),
-    ]
-
-    header_table = Table(
-        [[photo_cell, name_cell]],
-        colWidths=[0.9*inch, PAGE_W - 0.9*inch],
-        rowHeights=[HEADER_H],
-    )
-    header_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), dark),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING", (0, 0), (0, 0), 16),
-        ("LEFTPADDING", (1, 0), (1, 0), 12),
-        ("RIGHTPADDING", (-1, 0), (-1, 0), 16),
-        ("TOPPADDING", (0, 0), (-1, -1), 12),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
-    ]))
-
-    def sidebar_section(title, items):
-        out = []
-        if not items:
-            return out
-        out.append(Paragraph(title.upper(), sidebar_title_style))
-        out.append(HRFlowable(width=SIDEBAR_W - 0.4*inch, thickness=0.5,
-                              color=colors.HexColor("#cbd5e1"), spaceAfter=4))
-        for item in items:
-            if item:
-                out.append(Paragraph(str(item), sidebar_text_style))
-        out.append(Spacer(1, 8))
+    def sidebar_block(title, items, empty_text="—"):
+        out = [
+            Paragraph(title.upper(), sidebar_title_s),
+            HRFlowable(width=SIDEBAR_W - 0.4*inch, thickness=0.5, color=colors.HexColor("#d1d5db"), spaceAfter=4),
+        ]
+        if items:
+            for item in items:
+                out.append(Paragraph(str(item), sidebar_text_s))
+        else:
+            out.append(Paragraph(empty_text, empty_s))
         return out
 
-    contact_items = [c for c in [data.email, data.phone, data.linkedin,
-                                  data.social_link, data.location] if c]
+    def main_block(title, items, empty_text="—"):
+        out = [
+            Paragraph(title.upper(), main_title_s),
+            HRFlowable(width=MAIN_W - 0.5*inch, thickness=1, color=text_dark, spaceAfter=6),
+        ]
+        if items:
+            for item in items:
+                out.append(item)
+        else:
+            out.append(Paragraph(empty_text, empty_s))
+        out.append(Spacer(1, 6))
+        return out
+
+    # Build contact
+    contact_items = [c for c in [data.email, data.phone, data.location, data.linkedin] if c]
+
     personal_items = [p for p in [
         f"DOB: {data.date_of_birth}" if data.date_of_birth else "",
+        f"Gender: {data.gender}" if data.gender else "",
         f"Civil Status: {data.civil_status}" if data.civil_status else "",
         f"Nationality: {data.nationality}" if data.nationality else "",
         f"Available: {data.availability}" if data.availability else "",
         f"Job Type: {data.job_type}" if data.job_type else "",
     ] if p]
+
     skill_items = [s.strip() for s in data.skills.split(",") if s.strip()]
-    edu_items = [
-        f"{e.get('degree','')} — {e.get('school','')}{' | ' + e.get('year','') if e.get('year') else ''}"
-        for e in data.education if e.get("school") or e.get("degree")
-    ]
+
     cert_items = [
-        f"{c.get('name','')}{' — ' + c.get('issuer','') if c.get('issuer') else ''}{' (' + c.get('year','')+')' if c.get('year') else ''}"
+        f"{c.get('name','')}{' — ' + c.get('issuer','') if c.get('issuer') else ''}{' (' + c.get('year','') + ')' if c.get('year') else ''}"
         for c in data.certifications if c.get("name")
     ]
+
     lang_items = [
         f"{l.get('language','')}{' (' + l.get('proficiency','') + ')' if l.get('proficiency') else ''}"
         for l in data.languages if l.get("language")
     ]
 
-    sidebar_cells = []
-    sidebar_cells += sidebar_section("Contact", contact_items)
-    sidebar_cells += sidebar_section("Personal Info", personal_items)
-    sidebar_cells += sidebar_section("Skills", skill_items)
-    sidebar_cells += sidebar_section("Education", edu_items)
-    sidebar_cells += sidebar_section("Certifications", cert_items)
-    sidebar_cells += sidebar_section("Languages", lang_items)
-
-    def main_section(title, items):
-        out = []
-        if not items:
-            return out
-        out.append(Paragraph(title.upper(), main_title_style))
-        out.append(HRFlowable(width=MAIN_W - 0.4*inch, thickness=1,
-                              color=dark, spaceAfter=6))
-        for item in items:
-            if item:
-                out.append(item)
-        out.append(Spacer(1, 10))
-        return out
-
-    summary_items = [Paragraph(summary_text.strip(), body_style)] if summary_text.strip() else []
-
-    exp_items = []
+    # Build experience items
+    exp_flowables = []
     for j in data.work_experience:
-        if not (j.get("company") or j.get("role")):
-            continue
-        title_parts = []
-        if j.get("role"): title_parts.append(j["role"])
-        if j.get("company"): title_parts.append(j["company"])
-        duration = f" | {j['duration']}" if j.get("duration") else ""
-        exp_items.append(Paragraph(f"<b>{' — '.join(title_parts)}{duration}</b>", job_title_style))
+        if not (j.get("company") or j.get("role")): continue
+        parts = []
+        if j.get("role"): parts.append(j["role"])
+        if j.get("company"): parts.append(j["company"])
+        dur = f" | {j['duration']}" if j.get("duration") else ""
+        exp_flowables.append(Paragraph(f"<b>{' — '.join(parts)}{dur}</b>", job_title_s))
         for b in (j.get("responsibilities") or "").split("\n"):
             b = b.strip()
             if b:
-                exp_items.append(Paragraph(f"• {b}", bullet_style))
-        exp_items.append(Spacer(1, 4))
+                exp_flowables.append(Paragraph(f"• {b}", main_body_s))
+        exp_flowables.append(Spacer(1, 4))
 
-    seminar_items = []
-    for s in data.seminars:
-        if not s.get("title"): continue
-        text = s["title"]
-        if s.get("organizer"): text += f" — {s['organizer']}"
-        if s.get("year"): text += f" ({s['year']})"
-        seminar_items.append(Paragraph(f"• {text}", bullet_style))
+    edu_flowables = []
+    for e in data.education:
+        if not (e.get("school") or e.get("degree")): continue
+        text = f"<b>{e.get('degree','')}</b>{' — ' + e.get('school','') if e.get('school') else ''}{' | ' + e.get('year','') if e.get('year') else ''}"
+        edu_flowables.append(Paragraph(text, main_body_s))
+        edu_flowables.append(Spacer(1, 3))
 
-    ref_items = []
-    for r in data.references:
-        if not r.get("name"): continue
-        text = r["name"]
-        if r.get("position"): text += f", {r['position']}"
-        if r.get("company"): text += f" — {r['company']}"
-        if r.get("contact"): text += f" | {r['contact']}"
-        ref_items.append(Paragraph(f"• {text}", bullet_style))
+    seminar_flowables = [
+        Paragraph(f"• {s.get('title','')}{' — ' + s.get('organizer','') if s.get('organizer') else ''}{' (' + s.get('year','') + ')' if s.get('year') else ''}", main_body_s)
+        for s in data.seminars if s.get("title")
+    ]
 
+    ref_flowables = [
+        Paragraph(f"• {' | '.join(filter(None, [r.get('name'), r.get('position'), r.get('company'), r.get('contact')]))}", main_body_s)
+        for r in data.references if r.get("name")
+    ] or [Paragraph("Available upon request.", main_body_s)]
+
+    # Assemble sidebar
+    sidebar_cells = []
+    sidebar_cells += sidebar_block("Contact", contact_items)
+    sidebar_cells += sidebar_block("Personal Info", personal_items)
+    sidebar_cells += sidebar_block("Key Skills", skill_items)
+    sidebar_cells += sidebar_block("Certifications", cert_items)
+    sidebar_cells += sidebar_block("Languages", lang_items)
+
+    # Assemble main
     main_cells = []
-    main_cells += main_section("Professional Summary", summary_items)
-    main_cells += main_section("Work Experience", exp_items)
-    main_cells += main_section("Seminars & Trainings", seminar_items)
-    main_cells += main_section("Character References", ref_items)
+    main_cells += main_block("Career Objective",
+        [Paragraph(summary_text, main_body_s)] if summary_text else [], "—")
+    main_cells += main_block("Work Experience", exp_flowables)
+    main_cells += main_block("Education", edu_flowables)
+    main_cells += main_block("Seminars & Trainings", seminar_flowables)
+    main_cells += main_block("Character References", ref_flowables)
+
+    # Header
+    photo_cell = Paragraph("", styles["Normal"])
+    if data.photo and data.photo.startswith("data:image"):
+        try:
+            from reportlab.platypus import Image as RLImage
+            img_bytes = base64.b64decode(data.photo.split(",", 1)[1])
+            photo_cell = RLImage(BytesIO(img_bytes), width=0.75*inch, height=0.75*inch)
+        except Exception:
+            pass
+
+    header_table = Table(
+        [[photo_cell, [Paragraph(data.full_name.upper(), name_s), Paragraph(data.job_title or data.headline or "", role_s)]]],
+        colWidths=[1.0*inch, PAGE_W - 1.0*inch],
+        rowHeights=[HEADER_H],
+    )
+    header_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), dark),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (0, 0), 20),
+        ("LEFTPADDING", (1, 0), (1, 0), 14),
+        ("TOPPADDING", (0, 0), (-1, -1), 14),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 14),
+    ]))
 
     body_table = Table(
         [[sidebar_cells, main_cells]],
         colWidths=[SIDEBAR_W, MAIN_W],
     )
     body_table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (0, 0), slate100),
+        ("BACKGROUND", (0, 0), (0, 0), gray_bg),
         ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING", (0, 0), (0, 0), 14),
-        ("RIGHTPADDING", (0, 0), (0, 0), 14),
-        ("TOPPADDING", (0, 0), (-1, -1), 14),
+        ("LEFTPADDING", (0, 0), (0, 0), 12),
+        ("RIGHTPADDING", (0, 0), (0, 0), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 12),
         ("LEFTPADDING", (1, 0), (1, 0), 16),
         ("RIGHTPADDING", (1, 0), (1, 0), 16),
     ]))
 
     doc.build([header_table, body_table])
-
-    pdf_bytes = buffer.getvalue()
     return Response(
-        content=pdf_bytes,
+        content=buffer.getvalue(),
         media_type="application/pdf",
         headers={"Content-Disposition": "attachment; filename=resume.pdf"}
     )
