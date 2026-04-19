@@ -36,11 +36,11 @@ app.add_middleware(
 )
 
 class ResumeRequest(BaseModel):
-    full_name: str
-    email: str
-    phone: str
-    location: str
-    linkedin: str
+    full_name: str = ""
+    email: str = ""
+    phone: str = ""
+    location: str = ""
+    linkedin: str = ""
     photo: str = ""
     social_link: str = ""
     headline: str = ""
@@ -59,6 +59,10 @@ class ResumeRequest(BaseModel):
     tone: str = "Professional"
     references: list[dict] = []
     seminars: list[dict] = []
+    template: str = "Minimalist"
+    goal: str = "Applying for a Job"
+    bullet_style: str = "Short & Punchy"
+    color_accent: str = "Classic Black"
 
 def build_prompt(data: ResumeRequest) -> str:
     work_block = ""
@@ -127,11 +131,15 @@ Year: {edu.get('year', '')}
 
     selected_tone = tone_instructions.get(data.tone, tone_instructions["Professional"])
 
-    return f"""You are a professional resume writer in the Philippines. Generate a complete, polished resume.
+    return f"""You are a professional resume writer. Generate a complete, highly polished resume.
 
 Tone Style: {data.tone}
 Tone Instructions:
 {selected_tone}
+
+Resume Goal: {data.goal}
+Bullet Point Style: {data.bullet_style}
+Template Style: {data.template}
 
 Target Job Title: {data.job_title}
 Job Type: {data.job_type}
@@ -303,7 +311,16 @@ async def generate_pdf(data: ResumeRequest):
         bottomMargin=0,
     )
 
-    dark = colors.HexColor("#1e293b")
+    # Map the color accent choice to an actual hex color
+    accent_map = {
+        "Deep Purple": "#4c1d95",
+        "Electric Blue": "#2563eb",
+        "Classic Black": "#1e293b",
+        "Soft Green": "#059669"
+    }
+    hex_color = accent_map.get(data.color_accent, "#1e293b")
+
+    dark = colors.HexColor(hex_color)
     slate100 = colors.HexColor("#f1f5f9")
     slate500 = colors.HexColor("#64748b")
     slate600 = colors.HexColor("#475569")
@@ -487,6 +504,88 @@ async def generate_pdf(data: ResumeRequest):
         media_type="application/pdf",
         headers={"Content-Disposition": "attachment; filename=resume.pdf"}
     )
+@app.post("/chat")
+async def chat(request: Request):
+    body = await request.json()
+    messages = body.get("messages", [])
+    
+    system_prompt = """You are a friendly, conversational AI resume builder.
+
+CRITICAL OUTPUT CONSTRAINTS:
+1. MAX ONE QUESTION PER MESSAGE. You must NEVER ask for more than one piece of information in a single response.
+2. KEEP IT SHORT & GENTLE. Your response should never be longer than 2 to 3 sentences. Do not overwhelm the user.
+3. ONE AT A TIME: If you ask for an email, STOP. Do not ask for their location or anything else until they reply.
+4. BE LENIENT: If they say "none", "skip", or "same", just say "No problem!" and move to the very next single item. Do not repeat questions.
+5. NEVER simulate the user's side of the conversation.
+
+INFORMATION CHECKLIST (You must ask exactly one step at a time in this strict order):
+
+Step 1: Ask for Full Name and Professional Title. (User types)
+Step 2: Ask for Resume Tone.
+Step 3: Ask for Email, Phone, and LinkedIn. (User types)
+Step 4: Ask for Template style.
+Step 5: Ask for recent work experience and achievements. (User types)
+Step 6: Ask for the Goal of the resume.
+Step 7: Ask for Software Tools and Skills. (User types)
+Step 8: Ask for Bullet Style.
+Step 9: Ask for Education and Degree. (User types)
+Step 10: Ask for Color Accent.
+
+HOW TO START AND PROGRESS:
+- You MUST start every single message with `STEP X:` where X is the number of the step you are on.
+- FIRST MESSAGE ONLY: Output `STEP 1:` followed by greeting the user and asking for their name and title.
+- FOLLOWING MESSAGES: Output `STEP X:` followed by acknowledging their previous answer and asking the next question.
+
+CRITICAL FORMATTING RULES:
+- Never output brackets or internal thoughts.
+- Start every message with `STEP X:`
+- YOU MUST STOP and wait for the user between steps. NEVER output multiple steps in one message.
+
+ONLY when you have completed all 10 steps, output EXACTLY this JSON block and nothing else:
+
+RESUME_READY:{"full_name":"...","headline":"...","tone":"...","email":"...","phone":"...","linkedin":"...","social_link":"...","template":"...","work_experience":[{"company":"...","role":"...","duration":"...","responsibilities":"..."}],"goal":"...","skills":"...","bullet_style":"...","education":[{"school":"...","degree":"...","year":"..."}],"color_accent":"..."}"""
+
+    async def stream():
+        try:
+            async with httpx.AsyncClient(timeout=60) as client:
+                payload_messages = [
+                    {"role": "system", "content": system_prompt},
+                    *messages,
+                    {"role": "system", "content": "CRITICAL REMINDER: Max 2 sentences. DO NOT write internal thoughts. Start your message with `STEP X:` indicating the current step number. Then ask the question and IMMEDIATELY STOP."}
+                ]
+                
+                async with client.stream(
+                    "POST",
+                    OPENROUTER_URL,
+                    headers={
+                        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "https://resume-builder-mu-wheat-23.vercel.app",
+                        "X-Title": "AI Resume Builder",
+                    },
+                    json={
+                        "model": MODEL,
+                        "stream": True,
+                        "stop": ["Student:", "User:", "\nStudent", "\nUser", "user:", "student:", "\nSTEP", "STEP X"],
+                        "messages": payload_messages,
+                    },
+                ) as response:
+                    async for line in response.aiter_lines():
+                        if line.startswith("data: "):
+                            data_str = line[6:]
+                            if data_str.strip() == "[DONE]":
+                                break
+                            try:
+                                chunk = json.loads(data_str)
+                                delta = chunk["choices"][0]["delta"].get("content", "")
+                                if delta:
+                                    yield delta
+                            except Exception:
+                                continue
+        except Exception as e:
+            yield f"ERROR: {str(e)}"
+
+    return StreamingResponse(stream(), media_type="text/plain")
 
 @app.get("/health")
 def health():
