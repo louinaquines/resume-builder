@@ -22,15 +22,26 @@ export async function generateResume(formData, onChunk, onDone) {
 }
 
 export async function downloadResumePDF(formData) {
+  const newTab = window.open("", "_blank");
+  if (!newTab) {
+    alert("Please allow popups for this site to download your PDF.");
+    return;
+  }
+
+  newTab.document.write("<p style='font-family:sans-serif;padding:2rem'>Generating your PDF, please wait...</p>");
+
   const response = await fetch(`${BASE_URL}/generate-pdf`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(formData),
   });
 
-  if (!response.ok) throw new Error("Failed to generate PDF");
+  if (!response.ok) {
+    newTab.close();
+    throw new Error("Failed to generate PDF");
+  }
 
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
-  window.open(url, "_blank");
+  newTab.location.href = url;
 }
