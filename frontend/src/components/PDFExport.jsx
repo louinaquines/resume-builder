@@ -62,8 +62,8 @@ function buildPrintHTML(data, el) {
   if (!el || !data) return "";
 
   // Extract all text from the live rendered element by section
-  const getName = () => el.querySelector("h1")?.innerText || data.full_name || "";
-  const getRole = () => el.querySelector("h1 + p, h1 ~ p")?.innerText || data.job_title || data.headline || "";
+  const getName = () => data.full_name || "";
+  const getRole = () => data.job_title || data.headline || "";
 
   // Get sidebar sections
   const sidebarEl = el.querySelector(".resume-sidebar-inner") || el.querySelectorAll("div > div")[1]?.querySelector("div");
