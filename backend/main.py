@@ -132,19 +132,14 @@ Year: {edu.get('year', '')}
 
     selected_tone = tone_instructions.get(data.tone, tone_instructions["Professional"])
 
-    return f"""You are a professional resume writer. Generate a complete, highly polished resume.
+    return f"""You are a professional resume writer in the Philippines. Generate a complete, polished resume using ONLY the data provided below. Do not invent, assume, or add any information not explicitly given.
 
 Tone Style: {data.tone}
 Tone Instructions:
 {selected_tone}
 
-Resume Goal: {data.goal}
-Bullet Point Style: {data.bullet_style}
-Template Style: {data.template}
-
 Target Job Title: {data.job_title}
 Job Type: {data.job_type}
-Job Description: {data.job_description}
 Availability: {data.availability}
 
 PERSONAL INFO:
@@ -154,71 +149,73 @@ Email: {data.email}
 Phone: {data.phone}
 Location: {data.location}
 LinkedIn: {data.linkedin}
-Other Link: {data.social_link}
 Date of Birth: {data.date_of_birth}
 Civil Status: {data.civil_status}
 Nationality: {data.nationality}
 
 WORK EXPERIENCE:
-{work_block}
+{work_block if work_block.strip() else "None provided"}
 
 EDUCATION:
-{edu_block}
+{edu_block if edu_block.strip() else "None provided"}
 
 CERTIFICATIONS & LICENSES:
-{cert_block}
+{cert_block.strip() if cert_block.strip() else "None provided"}
 
 LANGUAGES:
-{lang_block}
+{lang_block.strip() if lang_block.strip() else "None provided"}
 
 SKILLS:
-{data.skills}
+{data.skills if data.skills.strip() else "None provided"}
 
 SEMINARS & TRAININGS:
-{seminar_block}
+{seminar_block.strip() if seminar_block.strip() else "None provided"}
 
 CHARACTER REFERENCES:
-{ref_block}
+{ref_block.strip() if ref_block.strip() else "None provided"}
 
-Instructions:
-- Write a compelling professional summary (3-4 sentences)
-- Rewrite work experience bullets to be achievement-focused
-- Output in clean markdown using this exact structure:
+STRICT RULES — YOU MUST FOLLOW THESE:
+1. Output ONLY real data from the sections above. Never invent or assume anything.
+2. If a section says "None provided", output only the section header — NO content, NO dashes, NO placeholder text.
+3. NEVER use square brackets like [Name], [Organization], [Date], [Relevant], [Year Obtained] anywhere.
+4. NEVER use ++ or == markup around text.
+5. Use ** only for bold category labels in the Skills section.
+6. Write a 3-4 sentence professional summary using only the actual data provided.
+7. Rewrite work experience bullets to be achievement-focused using only the actual responsibilities given.
 
-# [Full Name]
-[Email] | [Phone] | [Location] | [LinkedIn]
+Output in this exact markdown structure:
+
+# {data.full_name}
+{data.email} | {data.phone} | {data.location}{f" | {data.linkedin}" if data.linkedin else ""}
 
 ## Personal Information
-**Date of Birth:** ... | **Civil Status:** ... | **Nationality:** ...
+**Date of Birth:** {data.date_of_birth if data.date_of_birth else "N/A"} | **Civil Status:** {data.civil_status if data.civil_status else "N/A"} | **Nationality:** {data.nationality if data.nationality else "N/A"}
 
 ## Professional Summary
-...
+[write 3-4 sentences here based ONLY on actual data above]
 
 ## Work Experience
-
-### [Role] — [Company] | [Duration]
-- ...
+[only if work experience was provided, otherwise leave blank under this header]
 
 ## Education
-
-### [Degree] — [School] | [Year]
+[only if education was provided, otherwise leave blank under this header]
 
 ## Certifications & Licenses
-- ...
+[only if certifications were provided, otherwise leave blank under this header]
 
 ## Skills
-**[Category]:** skill1, skill2
+[only if skills were provided, otherwise leave blank under this header]
 
 ## Languages
-- ...
+[only if languages were provided, otherwise leave blank under this header]
 
 ## Seminars & Trainings
-- ...
+[only if seminars were provided, otherwise leave blank under this header]
 
 ## Character References
-- ...
+[only if references were provided, otherwise write "Available upon request."]
 
-Output only the resume. No commentary.
+Output only the resume. No commentary. No placeholder brackets. No invented data.
 """
 
 @app.post("/debug")

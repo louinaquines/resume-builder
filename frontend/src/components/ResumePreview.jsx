@@ -213,7 +213,15 @@ export default function ResumePreview({ data, markdown, loading, scale = 0.6 }) 
 
             <SidebarSection title="Personal Info" icon="person">
               {personalInfo
-                ? personalInfo.split("|").map((p, i) => <p key={i} style={sidebarTextStyle}>{p.trim()}</p>)
+                ? personalInfo.split("|").map((p, i) => (
+                  <p key={i} style={sidebarTextStyle}
+                    dangerouslySetInnerHTML={{
+                      __html: p.trim()
+                        .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+                        .replace(/\+\+(.+?)\+\+/g, "$1")
+                        .replace(/^\*\*|\*\*$/g, "")
+                    }} />
+                ))
                 : <p style={{ ...sidebarTextStyle, color: "#9ca3af" }}>—</p>}
             </SidebarSection>
 
