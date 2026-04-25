@@ -178,6 +178,12 @@ Company:
 Contact: 09XX XXX XXXX`,
     optional: true,
   },
+  {
+    id: "_submit",
+    question: "You're all set! Ready to generate your resume?",
+    subtitle: "AI will write your professional resume based on your answers.",
+    type: "submit",
+  },
 
 ];
 
@@ -527,6 +533,26 @@ export default function ChatForm({ onResumeReady, loading }) {
           </div>
         )}
       </div>
+
+      {/* Submit type */}
+      {step.type === "submit" && (
+        <div className="space-y-4">
+          <div className="bg-white/5 border border-white/10 rounded-xl p-4 space-y-2">
+            <p className="text-slate-300 text-sm">✅ <strong className="text-white">{answers.full_name}</strong></p>
+            <p className="text-slate-300 text-sm">✅ <strong className="text-white">{answers.headline}</strong></p>
+            <p className="text-slate-300 text-sm">✅ {answers.email} · {answers.phone}</p>
+            <p className="text-slate-300 text-sm">✅ {answers.location}</p>
+            {answers.work_experience_raw && <p className="text-slate-300 text-sm">✅ Work experience added</p>}
+            {answers.education_raw && <p className="text-slate-300 text-sm">✅ Education added</p>}
+            {answers.skills && <p className="text-slate-300 text-sm">✅ Skills: {answers.skills.slice(0, 40)}{answers.skills.length > 40 ? "..." : ""}</p>}
+          </div>
+          <button
+            onClick={() => goNext("confirmed")}
+            className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white py-4 rounded-xl font-bold text-base shadow-[0_0_20px_rgba(99,102,241,0.4)] hover:shadow-[0_0_30px_rgba(99,102,241,0.6)] transition-all duration-300">
+            ✨ Generate My Resume
+          </button>
+        </div>
+      )}
 
       {/* Back button */}
       {currentStep > 0 && (

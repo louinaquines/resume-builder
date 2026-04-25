@@ -579,66 +579,76 @@ RESUME_READY:{"full_name":"...","headline":"...","tone":"...","email":"...","pho
 async def generate_docx(data: ResumeRequest):
     doc = Document()
 
-    # Page margins
     for section in doc.sections:
-        section.top_margin = Inches(0.75)
-        section.bottom_margin = Inches(0.75)
-        section.left_margin = Inches(0.9)
-        section.right_margin = Inches(0.9)
+        section.top_margin = Inches(1)
+        section.bottom_margin = Inches(1)
+        section.left_margin = Inches(1)
+        section.right_margin = Inches(1)
 
-    def add_heading(text, level=1):
+    dark = RGBColor(0x1e, 0x29, 0x3b)
+    mid = RGBColor(0x4b, 0x55, 0x63)
+    light = RGBColor(0x9c, 0xa3, 0xaf)
+
+    def heading(text, size=11):
         p = doc.add_paragraph()
+        p.paragraph_format.space_before = Pt(14)
+        p.paragraph_format.space_after = Pt(2)
         run = p.add_run(text.upper())
         run.bold = True
-        run.font.size = Pt(11) if level == 1 else Pt(10)
-        run.font.color.rgb = RGBColor(0x1e, 0x29, 0x3b)
-        p.paragraph_format.space_before = Pt(12)
-        p.paragraph_format.space_after = Pt(2)
-        # Add underline rule
-        p2 = doc.add_paragraph()
-        run2 = p2.add_run("─" * 60)
-        run2.font.size = Pt(6)
-        run2.font.color.rgb = RGBColor(0x1e, 0x29, 0x3b)
-        p2.paragraph_format.space_after = Pt(4)
+        run.font.size = Pt(size)
+        run.font.color.rgb = dark
+        # Underline via border
+        from docx.oxml.ns import qn
+        from docx.oxml import OxmlElement
+        pPr = p._p.get_or_add_pPr()
+        pBdr = OxmlElement('w:pBdr')
+        bottom = OxmlElement('w:bottom')
+        bottom.set(qn('w:val'), 'single')
+        bottom.set(qn('w:sz'), '6')
+        bottom.set(qn('w:space'), '4')
+        bottom.set(qn('w:color'), '1e293b')
+        pBdr.append(bottom)
+        pPr.append(pBdr)
 
-    def add_body(text, italic=False, indent=False):
+    def body(text, color=None, indent=False, bold=False, size=10):
         p = doc.add_paragraph()
-        run = p.add_run(text)
-        run.font.size = Pt(10)
-        run.italic = italic
-        run.font.color.rgb = RGBColor(0x4b, 0x55, 0x63)
+        p.paragraph_format.space_after = Pt(2)
         if indent:
             p.paragraph_format.left_indent = Inches(0.2)
-        p.paragraph_format.space_after = Pt(2)
+        run = p.add_run(text)
+        run.font.size = Pt(size)
+        run.bold = bold
+        run.font.color.rgb = color or mid
         return p
 
-    def add_empty_space():
+    def spacer():
         p = doc.add_paragraph()
-        p.paragraph_format.space_after = Pt(20)
+        p.paragraph_format.space_after = Pt(6)
 
-    # ── NAME & HEADLINE ──
-    name_p = doc.add_paragraph()
-    name_run = name_p.add_run(data.full_name.upper())
-    name_run.bold = True
-    name_run.font.size = Pt(20)
-    name_run.font.color.rgb = RGBColor(0xff, 0xff, 0xff)
-    name_p.paragraph_format.space_after = Pt(2)
+    # ── NAME ──
+    p = doc.add_paragraph()
+    p.paragraph_format.space_after = Pt(0)
+    run = p.add_run(data.full_name.upper())
+    run.bold = True
+    run.font.size = Pt(22)
+    run.font.color.rgb = dark
 
-    headline_p = doc.add_paragraph()
-    hl_run = headline_p.add_run(data.job_title or data.headline or "")
-    hl_run.font.size = Pt(11)
-    hl_run.font.color.rgb = RGBColor(0xcb, 0xd5, 0xe1)
-    headline_p.paragraph_format.space_after = Pt(16)
+    # ── HEADLINE ──
+    p2 = doc.add_paragraph()
+    p2.paragraph_format.space_after = Pt(4)
+    run2 = p2.add_run(data.job_title or data.headline or "")
+    run2.font.size = Pt(12)
+    run2.font.color.rgb = mid
 
     # ── CONTACT ──
     contact_parts = [c for c in [data.email, data.phone, data.location, data.linkedin] if c]
     if contact_parts:
-        add_body(" | ".join(contact_parts))
+        body(" | ".join(contact_parts), color=mid, size=9)
 
     doc.add_paragraph()
 
     # ── PERSONAL INFO ──
-    add_heading("Personal Information")
+    heading("Personal Information")
     personal_parts = [p for p in [
         f"Date of Birth: {data.date_of_birth}" if data.date_of_birth else "",
         f"Civil Status: {data.civil_status}" if data.civil_status else "",
@@ -647,19 +657,18 @@ async def generate_docx(data: ResumeRequest):
         f"Job Type: {data.job_type}" if data.job_type else "",
     ] if p]
     if personal_parts:
-        add_body(" | ".join(personal_parts))
+        body(" | ".join(personal_parts), size=9)
     else:
-        add_empty_space()
+        spacer()
 
     # ── CAREER OBJECTIVE ──
-    add_heading("Career Objective")
-    if data.job_description:
-        add_body(data.job_description)
-    else:
-        add_empty_space()
+    heading("Career Objective")
+    # Will be filled by AI — leave space
+    spacer()
+    spacer()
 
     # ── WORK EXPERIENCE ──
-    add_heading("Work Experience")
+    heading("Work Experience")
     if data.work_experience:
         for j in data.work_experience:
             if not (j.get("company") or j.get("role")): continue
@@ -667,96 +676,95 @@ async def generate_docx(data: ResumeRequest):
             if j.get("role"): parts.append(j["role"])
             if j.get("company"): parts.append(j["company"])
             dur = f" | {j['duration']}" if j.get("duration") else ""
-            p = doc.add_paragraph()
-            run = p.add_run(f"{' — '.join(parts)}{dur}")
-            run.bold = True
-            run.font.size = Pt(10)
-            run.font.color.rgb = RGBColor(0x1e, 0x29, 0x3b)
-            p.paragraph_format.space_after = Pt(2)
+            body(f"{' — '.join(parts)}{dur}", color=dark, bold=True)
             for b in (j.get("responsibilities") or "").split("\n"):
                 b = b.strip()
                 if b:
-                    add_body(f"• {b}", indent=True)
-            doc.add_paragraph().paragraph_format.space_after = Pt(4)
+                    body(f"• {b}", indent=True)
+            spacer()
     else:
-        add_empty_space()
+        spacer()
+        spacer()
 
     # ── EDUCATION ──
-    add_heading("Education")
+    heading("Education")
     if data.education:
         for e in data.education:
             if not (e.get("school") or e.get("degree")): continue
-            text = f"{e.get('degree','')}"
+            text = f"{e.get('degree', '')}"
             if e.get("school"): text += f" — {e['school']}"
             if e.get("year"): text += f" | {e['year']}"
-            add_body(text)
+            body(text, color=dark, bold=True)
     else:
-        add_empty_space()
+        spacer()
+        spacer()
 
-    # ── SKILLS ──
-    add_heading("Key Skills")
+    # ── KEY SKILLS ──
+    heading("Key Skills")
     if data.skills.strip():
-        for s in data.skills.split(","):
-            s = s.strip()
-            if s:
-                add_body(f"• {s}", indent=True)
+        skills = [s.strip() for s in data.skills.split(",") if s.strip()]
+        body(", ".join(skills))
     else:
-        add_empty_space()
+        spacer()
+        spacer()
 
     # ── CERTIFICATIONS ──
-    add_heading("Certifications & Licenses")
+    heading("Certifications & Licenses")
     if data.certifications:
         for c in data.certifications:
             if not c.get("name"): continue
             text = c["name"]
             if c.get("issuer"): text += f" — {c['issuer']}"
             if c.get("year"): text += f" ({c['year']})"
-            add_body(f"• {text}", indent=True)
+            body(f"• {text}", indent=True)
     else:
-        add_empty_space()
+        spacer()
+        spacer()
 
     # ── LANGUAGES ──
-    add_heading("Languages")
+    heading("Languages")
     if data.languages:
         for l in data.languages:
             if not l.get("language"): continue
             text = l["language"]
             if l.get("proficiency"): text += f" ({l['proficiency']})"
-            add_body(f"• {text}", indent=True)
+            body(f"• {text}", indent=True)
     else:
-        add_empty_space()
+        spacer()
+        spacer()
 
     # ── SEMINARS ──
-    add_heading("Seminars & Trainings")
+    heading("Seminars & Trainings")
     if data.seminars:
         for s in data.seminars:
             if not s.get("title"): continue
             text = s["title"]
             if s.get("organizer"): text += f" — {s['organizer']}"
             if s.get("year"): text += f" ({s['year']})"
-            add_body(f"• {text}", indent=True)
+            body(f"• {text}", indent=True)
     else:
-        add_empty_space()
+        spacer()
+        spacer()
 
     # ── REFERENCES ──
-    add_heading("Character References")
+    heading("Character References")
     if data.references:
         for r in data.references:
             if not r.get("name"): continue
             text = " | ".join(filter(None, [r.get("name"), r.get("position"), r.get("company"), r.get("contact")]))
-            add_body(f"• {text}", indent=True)
+            body(f"• {text}", indent=True)
     else:
-        add_body("Available upon request.")
+        body("Available upon request.", color=light)
 
-    # Save to buffer
     buffer = BytesIO()
     doc.save(buffer)
     buffer.seek(0)
 
+    filename = (data.full_name or "resume").replace(" ", "_")
     return Response(
         content=buffer.getvalue(),
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        headers={"Content-Disposition": f"attachment; filename={data.full_name or 'resume'}.docx"}
+        headers={"Content-Disposition": f"attachment; filename={filename}.docx"}
     )
 
 @app.get("/health")
