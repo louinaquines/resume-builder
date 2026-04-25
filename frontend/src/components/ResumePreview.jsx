@@ -252,7 +252,7 @@ export default function ResumePreview({ data, markdown, loading, scale = 0.6 }) 
             <MainSection title="Career Objective" icon="person">
               {summaryText
                 ? <p style={{ fontSize: 10, color: "#4b5563", lineHeight: 1.7, textAlign: "justify" }}>{summaryText}</p>
-                : <p style={{ fontSize: 10, color: "#9ca3af" }}>—</p>}
+                : <div style={{ height: 32 }} />}
             </MainSection>
 
             <MainSection title="Work Experience" icon="briefcase">
@@ -265,7 +265,7 @@ export default function ResumePreview({ data, markdown, loading, scale = 0.6 }) 
                     ))}
                   </div>
                 ))
-                : <p style={{ fontSize: 10, color: "#9ca3af" }}>—</p>}
+                : <div style={{ height: 32 }} />}
             </MainSection>
 
             <MainSection title="Education" icon="graduation">
@@ -275,7 +275,7 @@ export default function ResumePreview({ data, markdown, loading, scale = 0.6 }) 
                     <p style={{ fontSize: 11, color: "#1e293b" }}>{e.title}</p>
                   </div>
                 ))
-                : <p style={{ fontSize: 10, color: "#9ca3af" }}>—</p>}
+                : <div style={{ height: 32 }} />}
             </MainSection>
 
             <MainSection title="Seminars & Trainings" icon="star">
@@ -285,7 +285,7 @@ export default function ResumePreview({ data, markdown, loading, scale = 0.6 }) 
                     <p style={bulletStyle}>{s}</p>
                   </div>
                 ))
-                : <p style={{ fontSize: 10, color: "#9ca3af" }}>—</p>}
+                : <div style={{ height: 32 }} />}
             </MainSection>
 
             <MainSection title="Character References" icon="person">
@@ -293,7 +293,7 @@ export default function ResumePreview({ data, markdown, loading, scale = 0.6 }) 
                 ? characterRefs.map((r, i) => (
                   <p key={i} style={bulletStyle}>• {r}</p>
                 ))
-                : <p style={{ fontSize: 10, color: "#9ca3af" }}>Available upon request.</p>}
+                : <div style={{ height: 32 }} />}
             </MainSection>
 
           </div>

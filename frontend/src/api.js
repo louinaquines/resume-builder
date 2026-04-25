@@ -65,3 +65,26 @@ export async function downloadResumePDF(formData) {
   const url = URL.createObjectURL(blob);
   newTab.location.href = url;
 }
+export async function downloadResumeDocx(formData) {
+  const newTab = window.open("", "_blank");
+  if (!newTab) {
+    alert("Please allow popups for this site.");
+    return;
+  }
+  newTab.document.write("<p style='font-family:sans-serif;padding:2rem'>Generating your DOCX, please wait...</p>");
+
+  const response = await fetch(`${BASE_URL}/generate-docx`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(formData),
+  });
+
+  if (!response.ok) {
+    newTab.close();
+    throw new Error("Failed to generate DOCX");
+  }
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  newTab.location.href = url;
+}
