@@ -44,7 +44,7 @@ const STEPS = [
     question: "Where are you located?",
     subtitle: "City, province, or full address — whatever you're comfortable sharing.",
     type: "text",
-    placeholder: "e.g. Mandaue City, Cebu",
+    placeholder: "Municipality, Province",
   },
   {
     id: "linkedin",
@@ -129,34 +129,34 @@ const STEPS = [
     question: "What are your key skills?",
     subtitle: "List anything you're good at — technical or soft skills.",
     type: "textarea",
-    placeholder: "e.g. Patient care, Microsoft Excel, Customer service, React, Cooking",
+    placeholder: "e.g. Microsoft Excel, Customer service, Coding, Cooking, Writing, Editing",
   },
   {
     id: "work_experience_raw",
     question: "Describe your work experience.",
     subtitle: "Include company, role, duration, and what you did. Add multiple jobs separated by a blank line.",
     type: "textarea",
-    placeholder: `Company: Accenture
-Role: Junior Developer
+    placeholder: `Company name
+Your position:
 Duration: April 2022 - April 2023
-Responsibilities: Built web apps, participated in code reviews`,
+Your responsibilities: `,
     optional: true,
   },
   {
     id: "education_raw",
     question: "What is your educational background?",
     type: "textarea",
-    placeholder: `School: University of Cebu
-Degree: BSIT
-Year: 2023`,
+    placeholder: `Name of School
+What Degree or Course you took:
+What year you graduated:`,
   },
   {
     id: "certifications_raw",
     question: "Do you have any certifications or licenses?",
     subtitle: "PRC license, TESDA, Driver's License, etc. Skip if none.",
     type: "textarea",
-    placeholder: `Name: PRC License
-Issuer: PRC
+    placeholder: `Name: National Id 
+Issuer: PhilSys
 Year: 2023`,
     optional: true,
   },
@@ -185,8 +185,8 @@ Year: 2022`,
     subtitle: "Name, position, company, and contact. Optional.",
     type: "textarea",
     placeholder: `Name: Maria Santos
-Position: HR Manager
-Company: Accenture
+Position: 
+Company: 
 Contact: 09XX XXX XXXX`,
     optional: true,
   },
