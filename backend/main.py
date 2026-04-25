@@ -27,7 +27,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://resume-builder-mu-wheat-23.vercel.app",
+        "https://ai-resume-ph.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -236,7 +236,7 @@ async def generate_resume(data: ResumeRequest):
                     headers={
                         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                         "Content-Type": "application/json",
-                        "HTTP-Referer": "https://resume-builder-mu-wheat-23.vercel.app",
+                        "HTTP-Referer": "https://ai-resume-ph.vercel.app",
                         "X-Title": "AI Resume Builder",
                     },
                     json={
@@ -274,7 +274,7 @@ async def generate_pdf(data: ResumeRequest):
             headers={
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://resume-builder-mu-wheat-23.vercel.app",
+                "HTTP-Referer": "https://ai-resume-ph.vercel.app",
                 "X-Title": "AI Resume Builder",
             },
             json={
@@ -545,7 +545,7 @@ RESUME_READY:{"full_name":"...","headline":"...","tone":"...","email":"...","pho
                     headers={
                         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                         "Content-Type": "application/json",
-                        "HTTP-Referer": "https://resume-builder-mu-wheat-23.vercel.app",
+                        "HTTP-Referer": "hhttps://ai-resume-ph.vercel.app",
                         "X-Title": "AI Resume Builder",
                     },
                     json={
