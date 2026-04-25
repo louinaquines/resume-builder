@@ -16,18 +16,6 @@ const STEPS = [
     placeholder: "e.g. Registered Nurse, Accountant, Fresh Graduate",
   },
   {
-    id: "tone",
-    question: "What tone should your resume have?",
-    subtitle: "This shapes the writing style of your resume.",
-    type: "choice",
-    options: [
-      { value: "Professional", label: "Professional", desc: "Formal and polished. Best for corporate roles." },
-      { value: "Modern", label: "Modern", desc: "Confident and fresh. Great for tech and startups." },
-      { value: "Creative", label: "Creative", desc: "Expressive and warm. Perfect for creative fields." },
-      { value: "Executive", label: "Executive", desc: "Authoritative and strategic. For senior roles." },
-    ],
-  },
-  {
     id: "email",
     question: "What's your email address?",
     type: "text",
@@ -190,18 +178,7 @@ Company:
 Contact: 09XX XXX XXXX`,
     optional: true,
   },
-  {
-    id: "color_accent",
-    question: "Pick a color accent for your resume.",
-    subtitle: "This sets the header and accent color of your PDF.",
-    type: "choice",
-    options: [
-      { value: "Classic Black", label: "Classic Black", color: "#1e293b" },
-      { value: "Deep Purple", label: "Deep Purple", color: "#4c1d95" },
-      { value: "Electric Blue", label: "Electric Blue", color: "#2563eb" },
-      { value: "Soft Green", label: "Soft Green", color: "#059669" },
-    ],
-  },
+
 ];
 
 function parseWorkExperience(raw) {
@@ -320,7 +297,7 @@ export default function ChatForm({ onResumeReady, loading }) {
         const data = {
           full_name: newAnswers.full_name || "",
           headline: newAnswers.headline || "",
-          tone: newAnswers.tone || "Professional",
+          tone: "Professional",
           email: newAnswers.email || "",
           phone: newAnswers.phone || "",
           location: newAnswers.location || "",
@@ -342,7 +319,7 @@ export default function ChatForm({ onResumeReady, loading }) {
           languages: parseLanguages(newAnswers.languages_raw),
           seminars: parseSeminars(newAnswers.seminars_raw),
           references: parseReferences(newAnswers.references_raw),
-          color_accent: newAnswers.color_accent || "Classic Black",
+          color_accent: "Classic Black",
           photo: newAnswers.photo || "",
           template: "Minimalist",
           goal: "Applying for a Job",
